@@ -45,8 +45,7 @@ const getSymbols = async (req,res) =>{
 }
 
 const getFavourites= async (req,res) =>{
-    //console.log("d5lto")
-    //console.log(req)
+
     username=req.query["username"]
     Favourite.find({"username":username}).then((result) => {
         res.send(result);
