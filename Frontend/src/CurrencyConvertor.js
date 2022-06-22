@@ -4,7 +4,8 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import { useState , useEffect} from "react";
 import Button from '@mui/material/Button';
-
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 const axios = require('axios');
 
 const currencies = ['AED','AFN','ALL','AMD','ANG','AOA','ARS','AUD','AWG','AZN','BAM','BBD','BDT','BGN','BHD','BIF','BMD','BND','BOB','BRL','BSD',
@@ -18,12 +19,71 @@ const currencies = ['AED','AFN','ALL','AMD','ANG','AOA','ARS','AUD','AWG','AZN',
 
 
 function CurrencyConvertor() {
+  var nextAction = "login"
+  const [favourites, setFavourites] = useState([]);
+  const [favouriteFetchFlag, setfavouriteFetchFlag] = useState(false);
+  if( typeof Cookies.get('username') != "undefined"){
+    nextAction="logout"
+
+  }
+  useEffect(() => {
+    // Do mount stuff here such as executing your request.
+    if(!favouriteFetchFlag){
+  axios.get('http://localhost:8000/api/currencies/getfavourites?username='+Cookies.get('username'))
+  .then((response) => {
+    console.log(response.data)
+    var tmpfav=[]
+    for (let index = 0; index < response.data.length; index++) {
+      tmpfav.push(response.data[index]["conversion"])
+    }
+    setFavourites(tmpfav)
+    console.log("successfully gotten")
+    setfavouriteFetchFlag(true)
+  }).catch((error) => {
+    
+    console.log( error)
+});
+}
+      
+
+}, []);
+
+
   const [inputAmount, setinputAmount] = useState(0);
   const [inputCurrency, setInputCurrency] = useState('USD');
   const [outputCurrency, setOutputCurrency] =useState('EGP');
   const [exchangeRate, setExchangeRate] = useState(0);
   const [outputAmount, setoutputAmount] = useState(0);
-  const state="login"
+
+  const [favourite, setFavourite] = useState("");
+  
+ 
+  
+  const navigate = useNavigate();
+  const handleClick=(e)=>{
+    console.log(Cookies.get('username'))
+    if(nextAction=="login")
+        navigate('/login')
+    else{
+      Cookies.remove('username')
+      navigate('/')
+    }
+    
+  }
+  const handleClickfavourite =(e)=>{
+    if(nextAction=="login"){
+      navigate('/login')
+    }
+    else{
+      axios.post('http://localhost:8000/api/currencies/addfavourite',{username:Cookies.get("username"),conversion: inputCurrency+"=>"+outputCurrency})
+      .then((response) => {
+        console.log(response.data)
+      }).catch((error) => {
+        
+        console.log( error)
+      });
+    }
+  }
   const update = (e) =>{
       console.log(inputAmount)
       console.log(inputCurrency)
@@ -49,7 +109,19 @@ function CurrencyConvertor() {
   const handleToChange = (event) => {
     setOutputCurrency(event.target.value);
   };
-
+  const handleFavouritesChange = (event) => {
+    setFavourites(event.target.value);
+  };
+  const handleFavouriteChange = (event) => {
+    setFavourite(event.target.value);
+  };
+  
+  const handleFavouriteChosen = (event) => {
+    const x = favourite.split("=>")
+    setInputCurrency(x[0])
+    setOutputCurrency(x[1])
+    update()
+  };
   return (
     <div className="mainContainer">
     <h1 className='text'>Currency Convertor</h1>
@@ -73,6 +145,27 @@ function CurrencyConvertor() {
         >
         </TextField>
       </div>
+      <h2 style={{color:"black",fontSize:"20px"}}>Currencies</h2>
+      <div>
+        <TextField
+          id="outlined-select-currency-native"
+          select
+          value={favourite}
+          onChange={handleFavouriteChange}
+          onBlur={handleFavouriteChosen}
+          SelectProps={{
+            native: true,
+          }}
+          helperText="Your Favourite Conversions"
+        >
+          {favourites.map((option) => (
+            <option >
+              {option}
+            </option>
+          ))}
+        </TextField>
+      </div>
+      <h2 style={{color:"black",fontSize:"15px"}}>select currencies for conversion</h2>
       <div>
         <TextField
           id="outlined-select-currency-native"
@@ -112,6 +205,10 @@ function CurrencyConvertor() {
         </TextField>
       </div>
       <div>
+      <Button variant="contained"  style={{color:"gold"}} onClick={handleClickfavourite}>{"add to favourites"}</Button>
+      </div>
+      <h2 style={{color:"black",fontSize:"20px"}}>results</h2>
+      <div>
       <TextField
           id="outlined-select-currency"
           value = {exchangeRate}
@@ -132,15 +229,16 @@ function CurrencyConvertor() {
             readOnly: true,
           }}
           helperText="Output Amount"
+          
         >
         </TextField>
       </div>
       <div>
-      <Button variant="contained" >{state}</Button>
+      <Button variant="contained" onClick={handleClick}>{nextAction}</Button>
       </div>
     </Box>
     </div>
   );
 }
-
+//style={{visibility: visibilityState}}
 export default CurrencyConvertor;

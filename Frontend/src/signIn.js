@@ -4,7 +4,6 @@ import Paper from '@mui/material/Paper';
 import './App.css';
 import KeyboardArrowRightOutlinedIcon from '@mui/icons-material/KeyboardArrowRightOutlined';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import Checkbox from '@mui/material/Checkbox';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { Avatar, createMuiTheme, FormControlLabel, ThemeProvider } from '@mui/material';
@@ -17,12 +16,13 @@ import MuiAlert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import { UserContext } from './usercontext.js';
 import { useNavigate } from 'react-router-dom';
+import { CookiesProvider } from "react-cookie";
+import Cookies from 'js-cookie';
 function SignIn() {
-  const {value,setValue} = useContext(UserContext)
+  //const {value,setValue} = useContext(UserContext)
   const navigate = useNavigate();
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-
 
 
 
@@ -83,7 +83,7 @@ function SignIn() {
     
 
 
-        if (email == '') {
+        if (username == '') {
           setEmailError(true)
           setEmailErrorHelper('Email is required')
         }
@@ -100,18 +100,20 @@ function SignIn() {
           setPasswordErrorHelper('')
         }
 
-        if(email!='' && password!=''){
-          axios.post('/api/auth', { email: email, password: password })
+        if(username!='' && password!=''){
+          axios.post('http://localhost:8000/api/auth/login', { username: username, password: password })
           .then((response)=>{
+            console.log(response.data.message)
             if (response.data.message!="logged in successfully") {
               handleClick2()
-              setBackendValidationResponse(response.data)
+              setBackendValidationResponse(response.data.message)
               setBackendValidationError(true)
             }else{
-             setValue(email)
-             console.log(value)
-              handleClick1()
-              navigate("/")
+             //setValue(email)
+             //console.log(value)
+             handleClick1()
+             Cookies.set("username",username)
+             navigate("/")
             }
           }).catch((error)=>{
             console.log(error)
@@ -144,7 +146,7 @@ function SignIn() {
   
             <form noValidate autoComplete='off' onSubmit={handleSubmit}>
               <TextField
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setUsername(e.target.value)}
                 helperText={emailErrorHelper}
                 error={emailError}
                 label="Email"

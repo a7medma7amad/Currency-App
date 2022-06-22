@@ -4,7 +4,8 @@ import { BrowserRouter , Route, Routes } from 'react-router-dom'
 import { useState , useEffect} from "react";
 import CurrencyConvertor from './CurrencyConvertor';
 import Navbar from './navbar';
-import SignIn from './signIn';
+import SignIn from './SignIn';
+import SignUp from './SignUp';
 
 const App = ()=>{
    useEffect(() => {
@@ -16,6 +17,7 @@ const App = ()=>{
        <Routes>   
          <Route exact path="/" element={ <CurrencyConvertor/> } />
          <Route exact path="/login" element={ <SignIn/> } />
+         <Route exact path="/signup" element={ <SignUp/> } />
        </Routes>
        
        </BrowserRouter>

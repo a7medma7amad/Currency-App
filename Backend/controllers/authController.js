@@ -11,14 +11,15 @@ const User = require("../Models/User");
   const takenEmail = await User.findOne({email:user.email})
 
   if(takenUser || takenEmail){
-    res.json({message:"taken user or email"})
+    res.json({message:"UserName or Email is already taken"})
   }else{
     user.password= await bcrypt.hash(req.body.password,10)
 
     const dbUser= new User({
       username:user.username.toLowerCase(),
       email:user.email.toLowerCase(),
-      password:user.password
+      password:user.password,
+      favourites:[]
     })
     dbUser.save()
     res.json({message:"Success"})
@@ -47,7 +48,7 @@ const login = (req,res)=>{
         (err,token)=>{
           if(err) return res.json({message:err})
           return res.json({
-            message:"Success",
+            message:"logged in successfully",
             token:"Bearer"+token
           })
           
@@ -55,7 +56,8 @@ const login = (req,res)=>{
       )
       }else{
         return res.json({
-          message:"invlid user or password"
+          message:"invlid user or password",
+          status:"400"
         })
       }
     })
